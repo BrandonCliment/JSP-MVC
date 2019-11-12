@@ -9,6 +9,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
@@ -61,21 +64,17 @@ public class DAO {
 		}
         }        
         
-        public CodeEntity getDiscount_Code(String discount_code) throws Exception{
-            	CodeEntity result = null;
+        public List<CodeEntity> getDiscount_Code() throws Exception{
+            	List<CodeEntity> result = new ArrayList<>();
 
-		String sql = "SELECT * FROM DISCOUNT_CODE WHERE DISCOUNT_CODE = ?";
+		String sql = "SELECT * FROM DISCOUNT_CODE WHERE DISCOUNT_CODE";
 		try (Connection connection = myDataSource.getConnection(); // On crée un statement pour exécuter une requête
-			PreparedStatement stmt = connection.prepareStatement(sql)) {
+			Statement stmt = connection.createStatement();
+                        ResultSet rs = stmt.executeQuery(sql)) {
 
-			stmt.setString(1, discount_code);
-			try (ResultSet rs = stmt.executeQuery()) {
-				if (rs.next()) { // On a trouvé
-					float taux = rs.getFloat("RATE");
-					// On crée l'objet "entity"
-					result = new CodeEntity(discount_code, taux);
-				} // else on n'a pas trouvé, on renverra null
-			}
+			while (rs.next()){
+                            result.add(new CodeEntity(rs.getString("DISCOUNT_CODE"),rs.getFloat("RATE")));
+                        }
 		}  catch (SQLException ex) {
 			Logger.getLogger("DAO").log(Level.SEVERE, null, ex);
                         throw new Exception(ex.getMessage());
